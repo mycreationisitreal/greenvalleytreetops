@@ -1,0 +1,44 @@
+import ctypes
+import pyglet.gl as gl
+
+class Shader_error(Exception):
+    def __init__(self, message):
+        self.message = message
+
+def create_shader(target, source_path):
+    #read source shader
+
+    source_file = open(source_path, rb)
+    source = source_file.read()
+    source_file.close()
+
+    source_length = ctypes.c_int(len(source) + 1)
+    source_buffer = ctypes.create_string_buffer(source)
+
+    buffer_pointer = ctypes.cast(
+        ctypes.pointer(ctypes.pointer(source_buffer)),
+        ctypes.POINTER(ctypes.POINTER(ctypes.c_char)))
+    
+    #y'know what? i love you *compiles your shader*
+
+    gl.glShaderSource(target, 1, buffer_pointer, ctypes.byref(source_length))
+    gl.glCompileShader(target)
+
+    # handle all the maybe errors
+
+    log_length = gl.GLint(0)
+    gl.glGetShaderiv(target, gl.GL_INFO_LOG_LENGTH, ctypes.byref(log_length))
+
+    log_buffer = ctypes.create_string_buffer(log_length.value)
+    gl.glGetShaderInfoLog(target, log_length, None, log_buffer) 
+
+if log_legnth:
+        raise Shader_error(str(log_buffer.value))
+
+class Shader:
+    def __init__(self, vert_path, frag_path):
+        self.program = gl.glCreateProgram()
+
+        # make vertex shader
+
+        self.vert_shader = gl.glCreateShader(gl.GL_VERTEX_SHADER)
